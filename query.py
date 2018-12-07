@@ -14,7 +14,7 @@ class Query:
 
     def quantify(self, example):
         val = example[self.column]
-        if is_numeric(val):
+        if self.is_numeric(val):
             return val >= self.value
         else:
             return val == self.value
