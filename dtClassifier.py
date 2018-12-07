@@ -1,7 +1,10 @@
+from __future__ import print_function
 from random import seed
 from random import randrange
 from csv import reader
-from __future__ import print_function
+from query import Query 
+from leaf import Leaf_Node
+from decision import Decision_Node
 
 
 def unique_vals(rows, col):
@@ -74,6 +77,7 @@ def get_best_split(rows):
     b_gain = 0  
     # best feature / value that produced it
     b_query = None  
+
     current_uncertainty = gini_index(rows)
     n_features = len(rows[0]) - 1  
 
@@ -98,7 +102,7 @@ def get_best_split(rows):
             # You actually can use '>' instead of '>=' here
             # but I wanted the tree to look a certain way for our
             # dataset.
-            if gain >= best_gain:
+            if gain >= b_gain:
                 b_gain, b_query = gain, query
 
     return b_gain, b_query
@@ -112,7 +116,7 @@ def build_tree(rows):
     """
 
     # Return the best split with given features so far
-    gain, query = find_best_split(rows)
+    gain, query = get_best_split(rows)
 
     if gain == 0:
         # Address this node as terminal node (leaf) or the prediction metric
@@ -133,7 +137,7 @@ def print_tree(node, spacing=""):
     """
 
     # Base case: we've reached a leaf
-    if isinstance(node, Leaf):
+    if isinstance(node, Leaf_Node):
         print (spacing + "Predict", node.predictions)
         return
 
@@ -155,7 +159,7 @@ def predict(row, node):
     """
 
     # Base case: we've reached a leaf node, return the predictions
-    if isinstance(node, Leaf):
+    if isinstance(node, Leaf_Node):
         return node.predictions
 
     # Decide whether to follow the true-branch or the false-branch
@@ -206,4 +210,4 @@ if __name__ == '__main__':
 
     for row in testing_data:
         print ("Actual: %s. Predicted: %s" %
-               (row[-1], print_leaf(classify(row, my_tree))))
+               (row[-1], print_leaf(predict(row, my_tree))))

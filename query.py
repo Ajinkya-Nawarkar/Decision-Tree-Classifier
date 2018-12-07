@@ -9,12 +9,12 @@ class Query:
         self.value = value
         self.header = header
 
-    def is_numeric(value):
+    def is_numeric(self, value):
         return isinstance(value, int) or isinstance(value, float)
 
     def quantify(self, example):
         val = example[self.column]
-        if is_numeric(val):
+        if self.is_numeric(val):
             return val >= self.value
         else:
             return val == self.value
@@ -23,7 +23,7 @@ class Query:
         # This is just a helper method to print
         # the question in a readable format.
         condition = "=="
-        if is_numeric(self.value):
+        if self.is_numeric(self.value):
             condition = ">="
         return "Is %s %s %s?" % (
             self.header[self.column], condition, str(self.value))
