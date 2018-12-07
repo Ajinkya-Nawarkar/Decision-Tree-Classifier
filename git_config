@@ -1,0 +1,10 @@
+
+[alias]
+  aa = add --all
+  sa = status
+  co = checkout
+  ci = commit -m
+  po = push origin
+  pod = push origin --delete
+  dc = diff --cached
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
