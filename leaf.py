@@ -8,3 +8,15 @@ class Leaf_Node:
     def __init__(self, rows):
         self.predictions = class_counts(rows)
 
+    def class_counts(rows):
+    """
+    This function helps count the number of each type of example in a dataset.
+    """
+    counts = {} 
+    for row in rows:
+        label = row[-1]
+        if label not in counts:
+            counts[label] = 0
+        counts[label] += 1
+    return counts
+
