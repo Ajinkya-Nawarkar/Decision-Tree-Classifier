@@ -1,3 +1,15 @@
+#####################################################################
+#                                                                   #
+#   Name: Ajinkya Nawarkar                                          #
+#   CSE 4633 AI Final Project                                       #
+#   Net-Id: an839                                                   #
+#                                                                   #    
+#   This file implements a basic Decision Tree Classifier           #
+#                                                                   #
+#####################################################################
+
+
+
 from __future__ import print_function
 import argparse
 from random import seed
