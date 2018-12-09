@@ -222,6 +222,7 @@ def decision_tree(training_data, testing_data, header):
     predictions = list()
     for row in testing_data:
         prediction = predict(row, decision_tree)
+        # print (print_leaf(prediction))
         predictions.append(prediction)
 
     return(predictions)
@@ -274,48 +275,68 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
         predicted = algorithm(train_set, test_set, *args)
         actual = [row[-1] for row in fold]
 
-        print ("Actual: %s. Predicted: %s" %
-               (actual, [print_leaf(each) for each in predicted] ))
+        # print ("Actual: %s. Predicted: %s" %
+        #        (actual, [print_leaf(each) for each in predicted] ))
+
+        print ("train_set size: %d | test_set size: %d" %(len(train_set), len(test_set)))
 
         accuracy = accuracy_metric(actual, interpret_predictions(predicted))
         scores.append(accuracy)
     return scores
 
 
+def get_dataset(filename):
+    """
+    This function helps retrive different datasets and sanitzes them
+    Standard functions cited from www.machinelearningmastery.com
+    """
+
+    def load_csv(filename):
+        file = open(filename, "rb")
+        lines = reader(file)
+        dataset = list(lines)
+        return dataset
+
+    def sanitize(dataset):
+        """ Converts str numeral into floats """
+        for col in range(len(dataset[0])):
+            for row in dataset:
+                if (row[col].lstrip('-').replace('.','',1).isdigit()):
+                    row[col] = float(row[col])
+        return dataset
+
+
+    dataset = load_csv(filename)
+    dataset = sanitize(dataset)
+    return dataset
+
+
 if __name__ == '__main__':
 
-    # Dataset
-    dataset = [
-        ['Green', 3, 'Apple'],
-        ['Yellow', 3, 'Apple'],
-        ['Red', 1, 'Grape'],
-        ['Red', 1, 'Grape'],
-        ['Yellow', 3, 'Lemon'],
-        ['Green', 3, 'Apple'],
-        ['Yellow', 4, 'Apple'],
-        ['Red', 2, 'Grape'],
-        ['Red', 1, 'Grape'],
-        ['Yellow', 3, 'Lemon']
-    ]
-
-    header = ["color", "diameter", "label"]
-
-    # evaluate algorithm
-    n_folds = 3
-    scores = evaluate_algorithm(dataset, decision_tree, n_folds, header)
-    print('\nScores: %s' % scores)
-    print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))
-
-    # # Evaluate
-    # testing_data = [
+    # # Dataset
+    # dataset = [
+    #     ['Green', 3, 'Apple'],
+    #     ['Yellow', 3, 'Apple'],
+    #     ['Red', 1, 'Grape'],
+    #     ['Red', 1, 'Grape'],
+    #     ['Yellow', 3, 'Lemon'],
     #     ['Green', 3, 'Apple'],
     #     ['Yellow', 4, 'Apple'],
     #     ['Red', 2, 'Grape'],
     #     ['Red', 1, 'Grape'],
-    #     ['Yellow', 3, 'Lemon'],
+    #     ['Yellow', 3, 'Lemon']
     # ]
 
-    # for row in testing_data:
-    #     print ("Actual: %s. Predicted: %s" %
-    #            (row[-1], print_leaf(predict(row, decision_tree))))
+    header = ['0']*20
+
+    def run_classfier(filename, n_folds = 3):
+        dataset = get_dataset(filename)
+        scores = evaluate_algorithm(dataset, decision_tree, n_folds, header)
+        print('\nScores: %s' % scores)
+        print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))
+
+    
+    filename1 = 'seismic-bumps.csv'
+    filename2 = 'banknote-authentication.csv'
+    run_classfier(filename2)
 
