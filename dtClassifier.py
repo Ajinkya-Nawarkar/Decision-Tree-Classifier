@@ -66,7 +66,7 @@ def info_gain(left, right, current_uncertainty):
     return current_uncertainty - p * gini_index(left) - (1 - p) * gini_index(right)
 
 
-def get_best_split(rows):
+def get_best_split(rows, header):
     """
     This function helps for calculating the information gain 
     for every feature / value pair and determining which 
@@ -108,7 +108,7 @@ def get_best_split(rows):
     return b_gain, b_query
 
 
-def build_tree(rows):
+def build_tree(rows, header):
     """
     This function helps builds the decision tree using recursion 
     At each step the best decision metric is determined using information gain
@@ -116,7 +116,7 @@ def build_tree(rows):
     """
 
     # Return the best split with given features so far
-    gain, query = get_best_split(rows)
+    gain, query = get_best_split(rows, header)
 
     if gain == 0:
         # Address this node as terminal node (leaf) or the prediction metric
@@ -124,11 +124,61 @@ def build_tree(rows):
 
     true_rows, false_rows = partition(rows, query)
 
-    true_branch = build_tree(true_rows)
-    false_branch = build_tree(false_rows)
+    true_branch = build_tree(true_rows, header)
+    false_branch = build_tree(false_rows, header)
 
     # This records the best feature / value to ask at this point
     return Decision_Node(query, true_branch, false_branch)
+
+
+def predict(row, node):
+    """
+    This function helps classify a given row based on where and which leaf our decision tree points to.
+    """
+
+    # Base case: we've reached a leaf node, return the predictions
+    if isinstance(node, Leaf_Node):
+        return node.predictions
+
+    # Decide whether to follow the true-branch or the false-branch
+    # based on nthe given query at that node
+    if node.query.quantify(row):
+        return predict(row, node.true_branch)
+    else:
+        return predict(row, node.false_branch)
+
+
+def interpret_predictions(prediction_list):
+    """
+    This function helps to interpret the list of dictionaries
+    where each dictionary contains predictions for an example  
+    
+    Return a single prediction from each dictionary as a list 
+    for the final accuracy calculation. 
+
+    For example: if     [{"prediction_1": 2, "prediction_2": 1}, {"prediction_3": 2}]
+    Interpreted as:     [{"prediction_1": 66%, "prediction_2": 33%}, {"prediction_3": 100%}]
+    predicted as:       ['prediction_1', 'prediction3']
+    """
+    predictions = []
+    
+    for each_dict in prediction_list:
+        def interpret_dict(prediction_dict):
+            """
+            This function interprets each dictionary
+            returns a single prediction
+            """
+            if (len(prediction_dict) == 1):
+                key, value = prediction_dict.items()[0]
+                return key
+            else:
+                values = list(prediction_dict.values())
+                keys = list(prediction_dict.keys())
+                return keys[values.index(max(values))]
+
+        predictions.append(interpret_dict(each_dict))
+
+    return predictions
 
 
 def print_tree(node, spacing=""):
@@ -153,23 +203,6 @@ def print_tree(node, spacing=""):
     print_tree(node.false_branch, spacing + "  ")
 
 
-def predict(row, node):
-    """
-    Here we classify a given row based on where and which leaf our decision tree points to.
-    """
-
-    # Base case: we've reached a leaf node, return the predictions
-    if isinstance(node, Leaf_Node):
-        return node.predictions
-
-    # Decide whether to follow the true-branch or the false-branch
-    # based on nthe given query at that node
-    if node.query.quantify(row):
-        return predict(row, node.true_branch)
-    else:
-        return predict(row, node.false_branch)
-
-
 def print_leaf(counts):
     """A nicer way to print the predictions at a leaf."""
     total = sum(counts.values()) * 1.0
@@ -179,13 +212,20 @@ def print_leaf(counts):
     return probs
 
 
-def decision_tree(training_data, testing_data):
-    decision_tree = build_tree(training_data)
+def decision_tree(training_data, testing_data, header):
+    """
+    This functions runs trained decision tree on test set
+    and returns indirect predictions
+    """
+    decision_tree = build_tree(training_data, header)
+    # print_tree(decision_tree)
     predictions = list()
     for row in testing_data:
-        prediction = print_leaf(predict(row, decision_tree))
+        prediction = predict(row, decision_tree)
         predictions.append(prediction)
+
     return(predictions)
+
 
 def cross_validation_split(dataset, n_folds):
     """
@@ -233,7 +273,11 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
             row_copy[-1] = None
         predicted = algorithm(train_set, test_set, *args)
         actual = [row[-1] for row in fold]
-        accuracy = accuracy_metric(actual, predicted)
+
+        print ("Actual: %s. Predicted: %s" %
+               (actual, [print_leaf(each) for each in predicted] ))
+
+        accuracy = accuracy_metric(actual, interpret_predictions(predicted))
         scores.append(accuracy)
     return scores
 
@@ -241,32 +285,37 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
 if __name__ == '__main__':
 
     # Dataset
-    training_data = [
+    dataset = [
         ['Green', 3, 'Apple'],
         ['Yellow', 3, 'Apple'],
         ['Red', 1, 'Grape'],
         ['Red', 1, 'Grape'],
         ['Yellow', 3, 'Lemon'],
+        ['Green', 3, 'Apple'],
+        ['Yellow', 4, 'Apple'],
+        ['Red', 2, 'Grape'],
+        ['Red', 1, 'Grape'],
+        ['Yellow', 3, 'Lemon']
     ]
 
     header = ["color", "diameter", "label"]
 
     # evaluate algorithm
-    n_folds = 5
-    scores = evaluate_algorithm(dataset, decision_tree, n_folds)
-    print('Scores: %s' % scores)
+    n_folds = 3
+    scores = evaluate_algorithm(dataset, decision_tree, n_folds, header)
+    print('\nScores: %s' % scores)
     print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))
 
-    # Evaluate
-    testing_data = [
-        ['Green', 3, 'Apple'],
-        ['Yellow', 4, 'Apple'],
-        ['Red', 2, 'Grape'],
-        ['Red', 1, 'Grape'],
-        ['Yellow', 3, 'Lemon'],
-    ]
+    # # Evaluate
+    # testing_data = [
+    #     ['Green', 3, 'Apple'],
+    #     ['Yellow', 4, 'Apple'],
+    #     ['Red', 2, 'Grape'],
+    #     ['Red', 1, 'Grape'],
+    #     ['Yellow', 3, 'Lemon'],
+    # ]
 
-    for row in testing_data:
-        print ("Actual: %s. Predicted: %s" %
-               (row[-1], print_leaf(predict(row, decision_tree))))
+    # for row in testing_data:
+    #     print ("Actual: %s. Predicted: %s" %
+    #            (row[-1], print_leaf(predict(row, decision_tree))))
 
