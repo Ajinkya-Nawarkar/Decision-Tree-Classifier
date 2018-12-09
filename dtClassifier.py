@@ -1,4 +1,5 @@
 from __future__ import print_function
+import argparse
 from random import seed
 from random import randrange
 from csv import reader
@@ -212,13 +213,16 @@ def print_leaf(counts):
     return probs
 
 
-def decision_tree(training_data, testing_data, header):
+def decision_tree(training_data, testing_data, results, header):
     """
     This functions runs trained decision tree on test set
     and returns indirect predictions
     """
     decision_tree = build_tree(training_data, header)
-    # print_tree(decision_tree)
+    
+    if (results.print_DT):
+        print_tree(decision_tree)
+    
     predictions = list()
     for row in testing_data:
         prediction = predict(row, decision_tree)
@@ -256,12 +260,12 @@ def accuracy_metric(actual, predicted):
     return correct / float(len(actual)) * 100.0
 
 
-def evaluate_algorithm(dataset, algorithm, n_folds, *args):
+def evaluate_algorithm(dataset, algorithm, results, *args):
     """
     This function helps to evaluate an algorithm using a cross validation split
     Standard function cited from www.machinelearningmastery.com
     """
-    folds = cross_validation_split(dataset, n_folds)
+    folds = cross_validation_split(dataset, results.n_folds)
     scores = list()
     for fold in folds:
         train_set = list(folds)
@@ -272,13 +276,13 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
             row_copy = list(row)
             test_set.append(row_copy)
             row_copy[-1] = None
-        predicted = algorithm(train_set, test_set, *args)
+        predicted = algorithm(train_set, test_set, results, *args)
         actual = [row[-1] for row in fold]
 
         # print ("Actual: %s. Predicted: %s" %
         #        (actual, [print_leaf(each) for each in predicted] ))
 
-        print ("train_set size: %d | test_set size: %d" %(len(train_set), len(test_set)))
+        print ("\ntrain_set size: %d | test_set size: %d\n" %(len(train_set), len(test_set)))
 
         accuracy = accuracy_metric(actual, interpret_predictions(predicted))
         scores.append(accuracy)
@@ -313,30 +317,82 @@ def get_dataset(filename):
 
 if __name__ == '__main__':
 
-    # # Dataset
-    # dataset = [
-    #     ['Green', 3, 'Apple'],
-    #     ['Yellow', 3, 'Apple'],
-    #     ['Red', 1, 'Grape'],
-    #     ['Red', 1, 'Grape'],
-    #     ['Yellow', 3, 'Lemon'],
-    #     ['Green', 3, 'Apple'],
-    #     ['Yellow', 4, 'Apple'],
-    #     ['Red', 2, 'Grape'],
-    #     ['Red', 1, 'Grape'],
-    #     ['Yellow', 3, 'Lemon']
-    # ]
 
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--dataset', action='store', dest='set_type',
+                    help='Type \'seismic\' for seismic-bumps dataset or\
+                    \'banknote\' for banknote-authentication dataset or\
+                    \'bankruptsy\' for bankrupty qualitative parameters or\
+                    \'balance\' for balance-scale dataset')
+
+    parser.add_argument('--dt', action='store_true', default=False,
+                        dest='print_DT',
+                        help='Print the decision tree')
+
+    parser.add_argument('--kf', action='store', dest='n_folds',
+                        help='No. of K folds for cross validation', type=int, default=3)
+
+    results = parser.parse_args()
+
+    filename1 = 'data/seismic-bumps.csv'
+    filename2 = 'data/banknote-authentication.csv'
+    filename3 = 'data/bankrupty-parameters.csv'
+    filename4 = 'data/balance-scale.csv'
     header = ['0']*20
 
-    def run_classfier(filename, n_folds = 3):
+    if (results.set_type == 'seismic'):
+        filename = filename1
+        header = ['seismic {a,b,c,d}',
+                    'seismoacoustic {a,b,c,d}',
+                    'shift {W, N}',
+                    'genergy',
+                    'gpuls',
+                    'gdenergy',
+                    'gdpuls',
+                    'ghazard {a,b,c,d}',
+                    'nbumps',
+                    'nbumps2',
+                    'nbumps3',
+                    'nbumps4',
+                    'nbumps5',
+                    'nbumps6',
+                    'nbumps7',
+                    'nbumps89',
+                    'energy',
+                    'maxenergy',
+                    'label']
+
+    elif (results.set_type == 'banknote'):
+        filename = filename2
+        header = ['variance',
+                    'skewness',
+                    'curtosis',
+                    'entropy',
+                    'label']
+
+    elif (results.set_type == 'bankruptcy'):
+        filename = filename3
+        header = ['Industrial Risk: {P,A,N}',
+                    'Management Risk: {P,A,N}', 
+                    'Financial Flexibility: {P,A,N}',
+                    'Credibility: {P,A,N}',
+                    'Competitiveness: {P,A,N}',
+                    'Operating Risk',
+                    'label']
+
+    elif (results.set_type == 'balance'):
+        filename = filename4
+        header = ['Left-Weight: 0-5',
+                    'Left-Distance: 0-5', 
+                    'Right-Weight: 0-5', 
+                    'Right-Distance: 0-5']
+
+    def run_classfier(filename, results):
         dataset = get_dataset(filename)
-        scores = evaluate_algorithm(dataset, decision_tree, n_folds, header)
+        scores = evaluate_algorithm(dataset, decision_tree, results, header)
         print('\nScores: %s' % scores)
         print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))
 
-    
-    filename1 = 'seismic-bumps.csv'
-    filename2 = 'banknote-authentication.csv'
-    run_classfier(filename2)
+    run_classfier(filename, results)
 
