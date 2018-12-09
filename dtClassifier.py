@@ -184,16 +184,25 @@ def print_leaf(counts):
 if __name__ == '__main__':
 
     training_data = [
-    ['Green', 3, 'Apple'],
-    ['Yellow', 3, 'Apple'],
-    ['Red', 1, 'Grape'],
-    ['Red', 1, 'Grape'],
-    ['Yellow', 3, 'Lemon'],
+        ['sunny','hot','high','weak','no'],
+        ['sunny','hot','high','strong','no'],
+        ['overcast','hot','high','weak','yes'],
+        ['rain','mild','high','weak','yes'],
+        ['rain','cool','normal','weak','yes'],
+        ['rain','cool','normal','strong','no'],
+        ['overcast','cool','normal','strong','yes'],
+        ['sunny','mild','high','weak','no'],
+        ['sunny','cool','normal','weak','yes'],
+        ['rain','mild','normal','weak','yes'],
     ]
+
 
     # Column labels.
     # These are used only to print the tree.
-    header = ["color", "diameter", "label"]
+    header = ['Outlook',
+                    'Temp',
+                    'Humidity',
+                    'Wind']
 
     my_tree = build_tree(training_data)
 
@@ -201,11 +210,10 @@ if __name__ == '__main__':
 
     # Evaluate
     testing_data = [
-        ['Green', 3, 'Apple'],
-        ['Yellow', 4, 'Apple'],
-        ['Red', 2, 'Grape'],
-        ['Red', 1, 'Grape'],
-        ['Yellow', 3, 'Lemon'],
+        ['sunny','mild','normal','strong','yes'],
+        ['overcast','mild','high','strong','yes'],
+        ['overcast','hot','normal','weak','yes'],
+        ['rain','mild','high','strong','no']
     ]
 
     for row in testing_data:
