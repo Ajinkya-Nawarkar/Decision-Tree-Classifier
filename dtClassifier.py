@@ -321,17 +321,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--dataset', action='store', dest='set_type',
-                    help='Type \'seismic\' for seismic-bumps dataset or\
-                    \'banknote\' for banknote-authentication dataset or\
-                    \'bankruptsy\' for bankrupty qualitative parameters or\
-                    \'balance\' for balance-scale dataset')
+                    help='Type \'seismic\' for seismic-bumps dataset OR\
+                    \'banknote\' for banknote-authentication dataset OR\
+                    \'bankruptsy\' for bankrupty qualitative parameters OR\
+                    \'balance\' for balance-scale dataset OR\
+                    \'weather\' for the weather dataset')
 
     parser.add_argument('--dt', action='store_true', default=False,
                         dest='print_DT',
-                        help='Print the decision tree')
+                        help='Print the decision tree | default=false')
 
     parser.add_argument('--kf', action='store', dest='n_folds',
-                        help='No. of K folds for cross validation', type=int, default=3)
+                        help='No. of K folds for cross validation | default=3', type=int, default=3)
 
     results = parser.parse_args()
 
@@ -339,6 +340,7 @@ if __name__ == '__main__':
     filename2 = 'data/banknote-authentication.csv'
     filename3 = 'data/bankrupty-parameters.csv'
     filename4 = 'data/balance-scale.csv'
+    filename5 = 'data/weather.csv'
     header = ['0']*20
 
     if (results.set_type == 'seismic'):
@@ -387,6 +389,13 @@ if __name__ == '__main__':
                     'Left-Distance: 0-5', 
                     'Right-Weight: 0-5', 
                     'Right-Distance: 0-5']
+
+    elif (results.set_type == 'weather'):
+        filename = filename5
+        header = ['Outlook',
+                    'Temp',
+                    'Humidity',
+                    'Wind']
 
     def run_classfier(filename, results):
         dataset = get_dataset(filename)
